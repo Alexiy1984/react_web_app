@@ -1,13 +1,13 @@
 import React, { PropTypes, Component } from 'react';
 
-import './App.css';
+import './MainPage.css';
 
 const propTypes = {
   initialName: PropTypes.string
 };
 
 const defaultProps = {
-  initialName: 'Аноним'
+  initialName: 'stranger'
 };
 
 class App extends Component {
@@ -41,7 +41,7 @@ class App extends Component {
       return (
         <div>
           <hr />
-          <p>Здравствуйте, {this.props.initialName}. Представтесь пожалуйста.</p>
+          <p>Hello, {this.props.initialName}. Enter name please.</p>
         </div>
       );
     }
@@ -49,7 +49,7 @@ class App extends Component {
     return (
       <div>
         <hr />
-        <p>Здравствуйте, {this.state.name}!</p>
+        <p>Hello, {this.state.name}!</p>
       </div>
     );
   }
@@ -57,9 +57,9 @@ class App extends Component {
   render() {
     return (
       <div className='App'>
-        <h1>Hello World!</h1>
+        <h1>FMT clinics in USA</h1>
         <div>
-          <p>Введите Ваше имя:</p>
+          <p>Name(username) input paceholder:</p>
           <div><input onChange={this.handleNameChange} /></div>
           {this.renderGreetingWidget()}
         </div>

@@ -1,14 +1,134 @@
 import express  from 'express';
 import React    from 'react';
 import ReactDom from 'react-dom/server';
-import App      from 'components/App';
+import { match, RouterContext } from 'react-router';
+import routes from './routes';
+import { Provider } from 'react-redux';
+import configureStore from './redux/configureStore';
 
 const app = express();
 
-app.use((req, res) => {
-  const componentHTML = ReactDom.renderToString(<App />);
+let sheet;
+let result;
 
-  return res.end(renderHTML(componentHTML));
+app.use('/list', function (req, res, next) {
+  const fs = require('fs');
+  const readline = require('readline');
+  const { google } = require('googleapis');
+  const SCOPES = [ 'https://www.googleapis.com/auth/spreadsheets.readonly' ];
+  const TOKEN_PATH = './src/token.json';
+// check if file exists
+  fs.readFile('./src/credentials.json', (err, content) => {
+    if (err) return console.log('Error loading client secret file:', err);
+    authorize(JSON.parse(content), listMajors);
+  });
+
+  function authorize(credentials, callback) {
+    const { client_secret, client_id, redirect_uris } = credentials.installed;
+    const oAuth2Client = new google.auth.OAuth2(
+        client_id, client_secret, redirect_uris[0]);
+
+    fs.readFile(TOKEN_PATH, (err, token) => {
+      if (err) return getNewToken(oAuth2Client, callback);
+      oAuth2Client.setCredentials(JSON.parse(token));
+      callback(oAuth2Client);
+    });
+  }
+
+  function getNewToken(oAuth2Client, callback) {
+    const authUrl = oAuth2Client.generateAuthUrl({
+      access_type: 'offline',
+      scope: SCOPES,
+    });
+    console.log('Authorize this app by visiting this url:', authUrl);
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+    rl.question('Enter the code from that page here: ', (code) => {
+      rl.close();
+      oAuth2Client.getToken(code, (err, token) => {
+        if (err) return console.error('Error while trying to retrieve access token', err);
+        oAuth2Client.setCredentials(token);
+        // Store the token to disk for later program executions
+        fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
+          if (err) console.error(err);
+          console.log('Token stored to', TOKEN_PATH);
+        });
+        callback(oAuth2Client);
+      });
+    });
+  }
+
+  function listMajors(auth) {
+    const sheets = google.sheets({ version: 'v4', auth });
+    sheets.spreadsheets.values.get({
+      spreadsheetId: '1KrJppgU8OCEb4rC2glZTjVd7kJ0FXVEeGQ9YszE5B6M',
+      range: 'Stem Cell Clinic'
+    }, (err, res) => {
+      if (err) return console.log(`The API returned an error: ${err}`);
+      const rows = res.data.values;
+      // sheet = rows;
+      result = [];
+      // const replacer = (_match, m1) => { '_' + m1.toLowerCase() }
+      if (rows.length) {
+        let columns = rows[0];
+        rows.map((row, index) => {
+          if(index === 0) {
+            // columns = row;
+          } else {
+            let _row = {};
+            columns.map((item, index) => {
+              item = item.toLowerCase().replace(/\s+/g, '_').replace(/[^_a-z]/, '');
+              _row[item] = row[index];
+            });
+            result.push(_row);
+          }
+          console.log(result);
+          console.warn('results printed');
+        });
+      } else {
+        console.log('No data found.');
+      }
+    });
+    return result;
+  }
+
+  res.setHeader('Content-Type', 'application/json');
+  res.send(JSON.stringify(result));
+
+  exports.list(JSON.stringify(result));
+});
+
+app.use('/test', function(req, res, next) {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(JSON.stringify({ a: 1, b: 2, c: 3 }));
+});
+
+app.use((req, res) => {
+  const store = configureStore();
+
+  match({ routes, location: req.url }, (error, redirectLocation, renderProps) => {
+    if (redirectLocation) {
+      return res.redirect(301, redirectLocation.pathname + redirectLocation.search);
+    }
+
+    if (error) {
+      return res.status(500).send(error.message);
+    }
+
+    if (!renderProps) {
+      return res.status(404).send('Not found');
+    }
+
+    const componentHTML = ReactDom.renderToString(
+      <Provider store={store}>
+        <RouterContext {...renderProps} />
+      </Provider>
+    );
+
+    return res.end(renderHTML(componentHTML));
+  });
 });
 
 const assetUrl = process.env.NODE_ENV !== 'production' ? 'http://localhost:8050' : '/';

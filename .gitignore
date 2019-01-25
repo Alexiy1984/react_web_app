@@ -37,3 +37,7 @@ jspm_packages
 .node_repl_history
 ._*
 public
+
+# Google sheets credentials
+src/credentials.json
+src/token.json

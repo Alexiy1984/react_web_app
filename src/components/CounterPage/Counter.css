@@ -1,0 +1,8 @@
+.counter-label {
+  display: inline-block;
+  margin-right: 20px;
+}
+
+.counter-button {
+  margin-right: 0.5rem;
+}
