@@ -41,3 +41,6 @@ public
 # Google sheets credentials
 src/credentials.json
 src/token.json
+
+# Mac garbage
+.DS_Store
