@@ -2,33 +2,7 @@ import React, { Component } from 'react';
 import Grid  from 'react-bootstrap/lib/Grid';
 import Row  from 'react-bootstrap/lib/Row';
 import Col  from 'react-bootstrap/lib/Col';
-import './GoogleSheets.css';
-// const fetch = require('node-fetch');
-
-// fetch('http://localhost:3001/list')
-//   .then(
-//     (response) => {
-//       if (response.status !== 200) {
-//         console.log(`Looks like there was a problem. Status Code: ' ${response.status}`);
-//         return;
-//       }
-
-//       response.json().then((data) => {
-//         console.log(data);
-//       });
-//     }
-//   )
-//   .catch((err) => {
-//     console.log('Fetch Error :-S', err);
-//   });
-
-// const propTypes = {
-//   data : PropTypes.array
-// };
-
-// const defaultProps = {
-//   data: [ [1, 2, 3], 2, 3, 4, 5]
-// };
+import './GoogleSheets.less';
 
 class GoogleSheets extends Component {
   constructor(props) {
@@ -43,17 +17,6 @@ class GoogleSheets extends Component {
     fetch('/list')
       .then(response => response.json())
       .then(data => this.setState({ data }));
-    //   .then(
-    //   (response) => {
-    //     if (response.status !== 200) {
-    //       console.log(`Looks like there was a problem. Status Code: ' ${response.status}`);
-    //       return;
-    //     }
-    //     response.json().then((data) => {
-    //       console.log(data);
-    //     });
-    //   }
-    // );
   }
 
   render() {
@@ -98,33 +61,16 @@ class GoogleSheets extends Component {
               }
             })}
             <h2>Clinics location</h2>
-            <ul>
+            <select className='select_fw'>
               {uniqueArray.map((unelt, unind) =>
-                <li key={unind}>{unelt}</li>
+                <option value={unind} key={unind}>{unelt}</option>
               )}
-            </ul>
+            </select>
           </ Col>
         </ Row>
       </ Grid>
     );
-    // const { data } = this.props;
-
-    // return (
-    //   <div>
-    //     <h1>Clinic list:</h1>
-    //     <ul>
-    //       {data.map((content, index) => {
-    //         return (
-    //           <li key={index}>{content.clinic_name}</li>
-    //         );
-    //       })}
-    //     </ul>
-    //   </div>
-    // );
   }
 }
-
-// GoogleSheets.propTypes = propTypes;
-// GoogleSheets.defaultProps = defaultProps;
 
 export default GoogleSheets;

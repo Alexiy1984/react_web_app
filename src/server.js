@@ -8,19 +8,27 @@ import configureStore from './redux/configureStore';
 
 const app = express();
 
-let sheet;
+// let sheet;
 let result;
 
-app.use('/list', function (req, res, next) {
+app.use('/list', (req, res, next) => {
   const fs = require('fs');
   const readline = require('readline');
   const { google } = require('googleapis');
   const SCOPES = [ 'https://www.googleapis.com/auth/spreadsheets.readonly' ];
   const TOKEN_PATH = './src/token.json';
-// check if file exists
-  fs.readFile('./src/credentials.json', (err, content) => {
-    if (err) return console.log('Error loading client secret file:', err);
-    authorize(JSON.parse(content), listMajors);
+
+  fs.access('./src/data/clinicTable.json', fs.F_OK, (err) => {
+    if (err) {
+      fs.readFile('./src/credentials.json', (crederr, content) => {
+        if (crederr) return console.log('Error loading client secret file:', crederr);
+        authorize(JSON.parse(content), listMajors);
+      });
+    }
+    fs.readFile('./src/data/clinicTable.json',  (dataerr, content) => {
+      if (dataerr) return console.log('Error loading data file:', dataerr);
+      result = JSON.parse(content);
+    });
   });
 
   function authorize(credentials, callback) {
@@ -50,7 +58,6 @@ app.use('/list', function (req, res, next) {
       oAuth2Client.getToken(code, (err, token) => {
         if (err) return console.error('Error while trying to retrieve access token', err);
         oAuth2Client.setCredentials(token);
-        // Store the token to disk for later program executions
         fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
           if (err) console.error(err);
           console.log('Token stored to', TOKEN_PATH);
@@ -72,20 +79,31 @@ app.use('/list', function (req, res, next) {
       result = [];
       // const replacer = (_match, m1) => { '_' + m1.toLowerCase() }
       if (rows.length) {
-        let columns = rows[0];
+        const columns = rows[0];
+
         rows.map((row, index) => {
-          if(index === 0) {
-            // columns = row;
-          } else {
-            let _row = {};
+          if (index !== 0) {
+            const _row = {};
+
             columns.map((item, index) => {
               item = item.toLowerCase().replace(/\s+/g, '_').replace(/[^_a-z]/, '');
               _row[item] = row[index];
             });
             result.push(_row);
           }
-          console.log(result);
-          console.warn('results printed');
+          // console.log(result);
+          // console.warn('results printed');
+        });
+        // (fsPromises.writeFile('./src/data/clinicTable.json', JSON.stringify(result))
+        //   .then(() => {
+        //     console.log('JSON saved');
+        //   })
+        //   .catch(er => {
+        //     console.log(er);
+        //   }));
+        // eslint-disable-next-line
+        fs.writeFileSync('./src/data/clinicTable.json', JSON.stringify(result), (_err) => {
+          if (_err) console.error(_err);
         });
       } else {
         console.log('No data found.');
@@ -97,10 +115,10 @@ app.use('/list', function (req, res, next) {
   res.setHeader('Content-Type', 'application/json');
   res.send(JSON.stringify(result));
 
-  exports.list(JSON.stringify(result));
+  // exports.list(JSON.stringify(result));
 });
 
-app.use('/test', function(req, res, next) {
+app.use('/test', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.send(JSON.stringify({ a: 1, b: 2, c: 3 }));
 });

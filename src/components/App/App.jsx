@@ -34,6 +34,12 @@ class App extends Component {
               <LinkContainer to='/googlesh'>
                 <NavItem>Clinics</NavItem>
               </LinkContainer>
+              <LinkContainer to='/test_page'>
+                <NavItem>Test</NavItem>
+              </LinkContainer>
+              <LinkContainer to='/countries'>
+                <NavItem>Countries</NavItem>
+              </LinkContainer>
             </Nav>
           </Navbar.Collapse>
         </Navbar>
