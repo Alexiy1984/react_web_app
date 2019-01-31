@@ -44,3 +44,5 @@ src/token.json
 
 # data
 src/data
+# Mac garbage
+.DS_Store
